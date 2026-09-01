@@ -143,6 +143,15 @@
   .card .name-box { padding: 11px 10px 10px; height: calc(2 * 1.45em + 21px);
                     display: flex; align-items: center; justify-content: center; }
   .alias { color: var(--accent); font-weight: 800; }
+  .tagline {
+    margin: 6px 0 22px; text-align: center; font-weight: 800;
+    font-size: clamp(19px, 5.2vw, 24px); line-height: 1.45; letter-spacing: -.01em;
+    color: var(--ink);
+  }
+  .tagline::after {
+    content: ""; display: block; width: 46px; height: 3px; border-radius: 2px;
+    background: var(--accent); margin: 14px auto 0;
+  }
   .card .name { font-size: 13.5px; font-weight: 700; line-height: 1.45;
                 text-align: center; text-wrap: balance; word-break: keep-all;
                 display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
@@ -177,6 +186,9 @@
     <h3 class="section" id="featureLabel">방금 본 제품</h3>
     <div class="feature" id="feature"></div>
   </section>
+
+  <!-- 기본형(슬러그 없이 들어왔을 때) — 큰 카드 자리에 들어가는 문구 -->
+  <p class="tagline" id="tagline" hidden>모든 리뷰는 몽땅리뷰에서!</p>
 
   <section>
     <h3 class="section" id="listTitle">다른 리뷰 제품</h3>
@@ -322,16 +334,24 @@
   function render() {
     const q = $("q").value.trim();
     const slug = location.hash.replace("#", "");
-    const featured = PRODUCTS.find(p => p.slug === slug) || PRODUCTS[0];
-    if (q) {
+    const featured = PRODUCTS.find(p => p.slug === slug);
+
+    if (q) {                                  // 검색 중
       const hits = PRODUCTS.filter(p => (p.name + p.short + (p.alias || "")).toLowerCase().includes(q.toLowerCase()));
+      $("tagline").hidden = true;
       $("listTitle").textContent = "검색 결과 " + hits.length + "건";
-      renderFeature(featured, true);
+      renderFeature(null, true);
       renderGrid(hits);
-    } else {
+    } else if (featured) {                    // 영상에서 넘어온 경우 — 그 제품이 맨 위
+      $("tagline").hidden = true;
       $("listTitle").textContent = "다른 리뷰 제품";
       renderFeature(featured, false);
       renderGrid(PRODUCTS.filter(p => p.slug !== featured.slug));
+    } else {                                  // 기본형 — 큰 카드 대신 문구, 전체 목록
+      $("featureWrap").hidden = true;
+      $("tagline").hidden = false;
+      $("listTitle").textContent = "리뷰 제품";
+      renderGrid(PRODUCTS);
     }
   }
 

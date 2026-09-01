@@ -143,14 +143,15 @@
   .card .name-box { padding: 11px 10px 10px; height: calc(2 * 1.45em + 21px);
                     display: flex; align-items: center; justify-content: center; }
   .alias { color: var(--accent); font-weight: 800; }
+  /* 기본형 문구 — 제목(리뷰 제품)을 빼는 대신, 작대기가 문구와 카드 사이 한가운데 오도록 여백을 나눴다 */
   .tagline {
-    margin: 6px 0 22px; text-align: center; font-weight: 800;
+    margin: 6px 0 35px; text-align: center; font-weight: 800;
     font-size: clamp(19px, 5.2vw, 24px); line-height: 1.45; letter-spacing: -.01em;
     color: var(--ink);
   }
   .tagline::after {
     content: ""; display: block; width: 46px; height: 3px; border-radius: 2px;
-    background: var(--accent); margin: 14px auto 0;
+    background: var(--accent); margin: 34px auto 0;
   }
   .card .name { font-size: 13.5px; font-weight: 700; line-height: 1.45;
                 text-align: center; text-wrap: balance; word-break: keep-all;
@@ -339,18 +340,20 @@
     if (q) {                                  // 검색 중
       const hits = PRODUCTS.filter(p => (p.name + p.short + (p.alias || "")).toLowerCase().includes(q.toLowerCase()));
       $("tagline").hidden = true;
+      $("listTitle").hidden = false;
       $("listTitle").textContent = "검색 결과 " + hits.length + "건";
       renderFeature(null, true);
       renderGrid(hits);
     } else if (featured) {                    // 영상에서 넘어온 경우 — 그 제품이 맨 위
       $("tagline").hidden = true;
+      $("listTitle").hidden = false;
       $("listTitle").textContent = "다른 리뷰 제품";
       renderFeature(featured, false);
       renderGrid(PRODUCTS.filter(p => p.slug !== featured.slug));
     } else {                                  // 기본형 — 큰 카드 대신 문구, 전체 목록
       $("featureWrap").hidden = true;
       $("tagline").hidden = false;
-      $("listTitle").textContent = "리뷰 제품";
+      $("listTitle").hidden = true;          // 기본형에선 목록 제목을 쓰지 않는다
       renderGrid(PRODUCTS);
     }
   }

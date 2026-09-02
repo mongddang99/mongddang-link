@@ -19,7 +19,7 @@ h1{font-size:17px;margin:4px 0 2px}
 .cp{flex:none;border:0;border-radius:8px;background:var(--acc);color:#fff;
  font-size:14px;font-weight:600;padding:9px 18px;cursor:pointer}
 .cp.ok{background:#3f9e5a}
-pre{margin:0;padding:12px;white-space:pre-wrap;word-break:break-word;font:14px/1.65 inherit}
+pre{margin:0;padding:12px;white-space:pre-wrap;word-break:break-word;font-family:inherit;font-size:14px;line-height:1.7;-webkit-user-select:all;user-select:all}
 </style></head><body>
 <h1>디어랩스 울애기쌩쌩 연어 수제사료</h1>
 <div class="sub">업로드 문구 · 버튼 누르면 바로 복사됩니다</div>
@@ -77,8 +77,11 @@ document.querySelectorAll('.cp').forEach(function(b){
     if(navigator.clipboard&&window.isSecureContext){navigator.clipboard.writeText(s).then(done,fb)}else{fb()}
     function fb(){var t=document.createElement('textarea');t.value=s;t.style.position='fixed';
       t.style.opacity=0;document.body.appendChild(t);t.select();
-      try{document.execCommand('copy');done()}catch(e){alert('복사 실패 - 길게 눌러 선택해주세요')}
+      try{document.execCommand('copy');done()}catch(e){sel(el);
+        b.textContent='길게 눌러 복사';setTimeout(function(){b.textContent='복사'},2500);}
       document.body.removeChild(t);}
+    function sel(node){var r=document.createRange();r.selectNodeContents(node);
+      var s=window.getSelection();s.removeAllRanges();s.addRange(r);}
   };
 });
 </script></body></html>

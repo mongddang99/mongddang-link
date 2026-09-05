@@ -160,6 +160,25 @@
 
   a:focus-visible, input:focus-visible, button:focus-visible { outline: 2.5px solid var(--accent); outline-offset: 3px; }
   footer { color: var(--muted); font-size: 11.5px; text-align: center; line-height: 1.7; }
+
+  /* 인앱브라우저(틱톡·인스타 등)는 앱 호출을 막는다 → 빠져나가는 법을 알려준다 */
+  /* 🚨 클래스 이름을 .sheet 로 짓지 말 것 — 위 '비즈니스 제안' 상자가 이미 쓰고 있다 */
+  .esc-bg { position: fixed; inset: 0; z-index: 40; background: rgba(0,0,0,.62);
+            display: grid; align-items: end; }
+  .esc { width: 100%; max-width: 560px; margin: 0 auto; background: var(--card);
+         border-radius: 18px 18px 0 0; box-shadow: var(--shadow);
+         padding: 20px 18px calc(18px + env(safe-area-inset-bottom));
+         animation: rise .18s ease-out; }
+  @keyframes rise { from { transform: translateY(16px); opacity: 0; } }
+  @media (prefers-reduced-motion: reduce) { .esc { animation: none; } }
+  .esc h3 { margin: 0 0 10px; font-size: 15.5px; }
+  .esc p { margin: 0; font-size: 13px; line-height: 1.65; color: var(--muted); word-break: keep-all; }
+  .esc .step { color: var(--ink); font-weight: 700; }
+  .esc .btns { display: flex; gap: 8px; margin-top: 18px; }
+  .esc button { flex: 1; min-height: 44px; border: 0; border-radius: 10px;
+                font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
+  .esc .primary { background: var(--accent); color: var(--accent-ink); }
+  .esc .ghost { background: transparent; color: var(--muted); border: 1px solid var(--line); }
 </style>
 
 <div class="notice" aria-label="네이버 · 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다"><div class="track" aria-hidden="true"><span>네이버 · 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다</span><span>네이버 · 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다</span><span>네이버 · 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다</span><span>네이버 · 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다</span></div></div>
@@ -1168,6 +1187,69 @@
       + ";S.browser_fallback_url=" + encodeURIComponent(url) + ";end";
   }
 
+  // 🚨 틱톡·인스타 프로필의 링크는 그 앱 안의 브라우저로 열린다.
+  // 이 브라우저들은 intent:// 를 통째로 무시해서 앱 호출이 아예 안 먹는다.
+  // 자동으로 뚫는 방법은 없다 → 빠져나가는 법을 알려주는 게 유일한 길이다.
+  const INAPP = [
+    { test: /musical_ly|trill|BytedanceWebview/i, name: "틱톡" },
+    { test: /Instagram/i,                          name: "인스타그램" },
+    { test: /FBAN|FBAV|FB_IAB/i,                   name: "페이스북" },
+    { test: /KAKAOTALK/i,                          name: "카카오톡" },
+    { test: /NAVER\(inapp/i,                       name: "네이버" },
+    { test: /Line\//i,                             name: "라인" }
+  ];
+  const inApp = INAPP.find(x => x.test.test(navigator.userAgent)) || null;
+
+  function copy(text) {
+    if (navigator.clipboard) return navigator.clipboard.writeText(text).catch(function () { return legacyCopy(text); });
+    return legacyCopy(text);
+  }
+  function legacyCopy(text) {
+    const t = document.createElement("textarea");
+    t.value = text; t.style.position = "fixed"; t.style.opacity = "0";
+    document.body.append(t); t.select();
+    try { document.execCommand("copy"); } catch (e) { /* 안 되면 그냥 둔다 */ }
+    t.remove();
+  }
+
+  function openSheet(url) {
+    if (document.querySelector(".esc-bg")) return;
+    const bg = document.createElement("div");
+    bg.className = "esc-bg";
+    const s = document.createElement("div");
+    s.className = "esc";
+
+    const h = document.createElement("h3");
+    h.textContent = "앱으로 보려면";
+    const p1 = document.createElement("p");
+    const step = document.createElement("span");
+    step.className = "step";
+    step.textContent = "오른쪽 위 ⋯ → ‘브라우저에서 열기’";
+    p1.append(
+      document.createTextNode((inApp ? inApp.name : "이 앱") + " 안의 브라우저라 앱이 바로 열리지 않아요. "),
+      step,
+      document.createTextNode(" 를 고르면 앱으로 열려요.")
+    );
+
+    const btns = document.createElement("div");
+    btns.className = "btns";
+    const cp = document.createElement("button");
+    cp.className = "primary"; cp.textContent = "주소 복사";
+    cp.addEventListener("click", function () {
+      copy(url);
+      cp.textContent = "복사했어요";
+    });
+    const web = document.createElement("button");
+    web.className = "ghost"; web.textContent = "여기서 보기";
+    web.addEventListener("click", function () { location.href = url; });
+    btns.append(cp, web);
+
+    s.append(h, p1, btns);
+    bg.append(s);
+    bg.addEventListener("click", function (e) { if (e.target === bg) bg.remove(); });
+    document.body.append(bg);
+  }
+
   function ytBadge(p) {
     if (!p.video) return null;
     const pf = PLATFORMS.find(x => x.test.test(p.video)) || PLATFORMS[0];
@@ -1178,12 +1260,16 @@
     a.setAttribute("aria-label", p.short + " " + pf.label);
     a.innerHTML = pf.svg;
     const intent = intentUrl(p.video);
-    if (intent) a.addEventListener("click", function (e) {
+    if (intent || inApp) a.addEventListener("click", function (e) {
       e.preventDefault();
-      // intent 를 통째로 무시하는 인앱 브라우저가 있어, 안 떠나면 원래 주소로 간다
-      const back = setTimeout(function () { location.href = p.video; }, 1200);
+      if (!intent) { openSheet(p.video); return; }   // iOS 인앱 — 시도할 수단이 없다
+      // 앱으로 넘어가면 화면이 가려진다. 그대로 남아 있으면 실패한 것이다
+      const failed = setTimeout(function () {
+        if (inApp) openSheet(p.video);               // 인앱브라우저 — 빠져나가는 법 안내
+        else location.href = p.video;                 // 일반 브라우저 — 웹으로
+      }, 1200);
       document.addEventListener("visibilitychange", function () {
-        if (document.hidden) clearTimeout(back);
+        if (document.hidden) clearTimeout(failed);
       }, { once: true });
       location.href = intent;
     });

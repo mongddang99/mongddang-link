@@ -163,6 +163,7 @@
 
 </style>
 
+
 <div class="notice" aria-label="네이버 · 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다"><div class="track" aria-hidden="true"><span>네이버 · 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다</span><span>네이버 · 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다</span><span>네이버 · 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다</span><span>네이버 · 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다</span></div></div>
 
 <div class="wrap">
@@ -1168,6 +1169,11 @@
 
   const $ = id => document.getElementById(id);
 
+  // 들어온 곳(?from=)에 따라 그 플랫폼 이름표의 쿠팡 링크를 쓴다 (10-03)
+  // 제품에 links: { tiktok: "...", kakao: "...", naverblog: "...", tistory: "..." } 가 있으면 그걸, 없으면 기본 link
+  const FROM = new URLSearchParams(location.search).get("from") || "";
+  const linkOf = p => (p.links && p.links[FROM]) || p.link;
+
   // 비즈니스 제안 — 메일 앱만 뜨면 불편하니 Gmail / 메일앱 / 주소복사 중 고르게 한다
   $("gmail").href = "https://mail.google.com/mail/?view=cm&fs=1&to=" + encodeURIComponent(MAIL) +
                     "&su=" + encodeURIComponent(SUBJECT) + "&body=" + encodeURIComponent(BODY);
@@ -1261,7 +1267,7 @@
     f.replaceChildren();
     // 이미지도 눌리게 — 사진을 누르는 사람이 버튼만큼 많다
     const shotLink = document.createElement("a");
-    shotLink.href = p.link; shotLink.target = "_blank"; shotLink.rel = "noopener";
+    shotLink.href = linkOf(p); shotLink.target = "_blank"; shotLink.rel = "noopener";
     shotLink.setAttribute("aria-label", p.short + " 구매 페이지 열기");
     shotLink.append(shot(p));
     const body = document.createElement("div");
@@ -1273,7 +1279,7 @@
       h2.append(al, document.createTextNode(" " + p.name));
     } else { h2.textContent = p.name; }
     const buy = document.createElement("a");
-    buy.className = "buy"; buy.href = p.link; buy.target = "_blank"; buy.rel = "noopener";
+    buy.className = "buy"; buy.href = linkOf(p); buy.target = "_blank"; buy.rel = "noopener";
     buy.textContent = "구매하러 가기";
     body.append(h2, buy);
     f.append(shotLink, body);
@@ -1286,7 +1292,7 @@
       const card = document.createElement("div");
       card.className = "card";
       const imgLink = document.createElement("a");
-      imgLink.className = "buy-link"; imgLink.href = p.link;
+      imgLink.className = "buy-link"; imgLink.href = linkOf(p);
       imgLink.target = "_blank"; imgLink.rel = "noopener";
       imgLink.setAttribute("aria-label", p.short + " 구매 페이지 열기");
       imgLink.append(shot(p));
@@ -1309,7 +1315,7 @@
       const actions = document.createElement("div");
       actions.className = "actions";
       const go = document.createElement("a");
-      go.className = "go"; go.href = p.link; go.target = "_blank"; go.rel = "noopener";
+      go.className = "go"; go.href = linkOf(p); go.target = "_blank"; go.rel = "noopener";
       go.textContent = "구매하러 가기";
       actions.append(go);
       const yt = ytBadge(p);
@@ -1349,5 +1355,7 @@
 
   $("q").addEventListener("input", render);
   window.addEventListener("hashchange", render);
+
+
   render();
 </script>
